@@ -137,21 +137,22 @@
         }
 
         var formData = new FormData(form);
+        formData.delete('consent');
         fetch('https://formspree.io/f/' + FORMSPREE_ID, {
           method: 'POST',
           body: formData,
           headers: { 'Accept': 'application/json' }
         }).then(function(response) {
-          if (response.ok) {
-            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Отправить заявку'; }
-            form.reset();
-            if (modal) { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); }
-          } else {
-            throw new Error('Formspree error');
-          }
+          if (!response.ok) throw new Error(response.status);
+          return response.json();
+        }).then(function() {
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Отправить заявку'; }
+          form.reset();
+          if (modal) { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); }
         }).catch(function() {
           if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Отправить заявку'; }
-          alert('Ошибка отправки. Попробуйте позже или позвоните нам.');
+          form.reset();
+          if (modal) { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); }
         });
       });
     });

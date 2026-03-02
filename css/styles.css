@@ -359,6 +359,7 @@ main { flex: 1; }
   color: #6b7280;
   line-height: 1.4;
   cursor: pointer;
+  margin-top: 0.5rem;
 }
 .consent-label input[type="checkbox"] {
   margin-top: 0.125rem;
@@ -374,6 +375,10 @@ main { flex: 1; }
   text-underline-offset: 2px;
 }
 .consent-label a:hover { color: #c2410c; }
+.lead-form-inner .btn-submit {
+  margin-top: 0.5rem;
+  width: 100%;
+}
 .btn-submit {
   padding: 0.625rem 1.25rem;
   font-size: 1rem;
