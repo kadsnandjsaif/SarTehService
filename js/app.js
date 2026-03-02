@@ -1,0 +1,205 @@
+(function () {
+  'use strict';
+
+  const FORMSPREE_ID = 'YOUR_FORM_ID';
+
+  function initSlider() {
+    var track = document.getElementById('slider-track');
+    var iconsWrap = document.getElementById('appliance-icons');
+    if (!track || !iconsWrap) return;
+
+    var current = 0;
+    var slides = track.querySelectorAll('.slider-slide');
+    var buttons = iconsWrap.querySelectorAll('.appliance-btn');
+
+    function goTo(idx) {
+      if (idx === current) return;
+      slides[current].classList.remove('active');
+      buttons[current].classList.remove('active');
+      buttons[current].setAttribute('aria-pressed', 'false');
+      current = idx;
+      slides[current].classList.add('active');
+      buttons[current].classList.add('active');
+      buttons[current].setAttribute('aria-pressed', 'true');
+    }
+
+    iconsWrap.addEventListener('click', function(e) {
+      var btn = e.target.closest('.appliance-btn');
+      if (!btn) return;
+      goTo(+btn.dataset.index);
+    });
+  }
+
+  function initWhy() {
+    var grid = document.getElementById('why-grid');
+    if (!grid) return;
+
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+    grid.querySelectorAll('.why-card').forEach(function(el) { observer.observe(el); });
+  }
+
+  function initFAQ() {
+    var list = document.getElementById('faq-list');
+    if (!list) return;
+
+    var openItem = list.querySelector('.faq-item.open');
+    var openId = openItem ? +openItem.dataset.id : null;
+
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+    list.querySelectorAll('.faq-item').forEach(function(el) { observer.observe(el); });
+
+    list.addEventListener('click', function(e) {
+      var trigger = e.target.closest('.faq-trigger');
+      if (!trigger) return;
+      var item = trigger.closest('.faq-item');
+      var id = +item.dataset.id;
+      openId = openId === id ? null : id;
+      list.querySelectorAll('.faq-item').forEach(function(el) {
+        var isOpen = +el.dataset.id === openId;
+        el.classList.toggle('open', isOpen);
+        var t = el.querySelector('.faq-trigger');
+        if (t) t.setAttribute('aria-expanded', isOpen);
+      });
+    });
+  }
+
+  function initHeroCards() {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.hero-card').forEach(function(el) { observer.observe(el); });
+  }
+
+  function initForms() {
+    var modal = document.getElementById('modal-overlay');
+    var modalClose = document.getElementById('modal-close');
+
+    document.querySelectorAll('.lead-form-inner').forEach(function(form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var submitBtn = this.querySelector('.btn-submit');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Отправка...';
+        }
+        var formId = FORMSPREE_ID;
+        var isDemo = !formId || formId === 'YOUR_FORM_ID';
+
+        if (isDemo) {
+          setTimeout(function() {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Отправить заявку'; }
+            form.reset();
+            if (modal) { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); }
+          }, 800);
+          return;
+        }
+
+        var formData = new FormData(form);
+        fetch('https://formspree.io/f/' + formId, {
+          method: 'POST',
+          body: formData
+        }).then(function() {
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Отправить заявку'; }
+          form.reset();
+          if (modal) { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); }
+        }).catch(function() {
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Отправить заявку'; }
+          alert('Ошибка отправки. Попробуйте позже или позвоните нам.');
+        });
+      });
+    });
+
+    document.querySelectorAll('.input-wrap input[type="tel"]').forEach(function(input) {
+      input.addEventListener('input', function () {
+        this.value = this.value.replace(/[^\d+]/g, '');
+      });
+    });
+
+    if (modalClose && modal) {
+      modalClose.addEventListener('click', function() {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+      });
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          modal.classList.remove('open');
+          modal.setAttribute('aria-hidden', 'true');
+        }
+      });
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('open')) {
+          modal.classList.remove('open');
+          modal.setAttribute('aria-hidden', 'true');
+        }
+      });
+    }
+  }
+
+  function initAutoSlider(trackId, interval) {
+    var track = document.getElementById(trackId);
+    if (!track) return;
+    var slides = track.querySelectorAll('img');
+    if (slides.length === 0) return;
+    var idx = 0;
+    setInterval(function () {
+      idx = (idx + 1) % slides.length;
+      track.style.transform = 'translateX(-' + idx * 100 + '%)';
+    }, interval || 4000);
+  }
+
+  function initVideoReviews() {
+    var overlay = document.getElementById('video-modal');
+    var body = document.getElementById('video-modal-body');
+    var closeBtn = document.getElementById('video-modal-close');
+    if (!overlay || !body) return;
+
+    function openVideo(src) {
+      body.innerHTML = '<iframe src="' + src + '" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden', 'false');
+    }
+    function closeVideo() {
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden', 'true');
+      body.innerHTML = '';
+    }
+
+    document.querySelectorAll('.review-card[data-video]').forEach(function(card) {
+      card.addEventListener('click', function() {
+        openVideo(this.dataset.video);
+      });
+    });
+    if (closeBtn) closeBtn.addEventListener('click', closeVideo);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeVideo(); });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && overlay.classList.contains('open')) closeVideo();
+    });
+  }
+
+  function run() {
+    initSlider();
+    initAutoSlider('hero-slider-track', 4000);
+    initAutoSlider('slider-banner-track', 4500);
+    initWhy();
+    initVideoReviews();
+    initFAQ();
+    initHeroCards();
+    initForms();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run);
+  } else {
+    run();
+  }
+})();
