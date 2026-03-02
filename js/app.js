@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  const FORMSPREE_ID = 'YOUR_FORM_ID';
+  const FORMSPREE_ID = 'xgoljaoz';
 
   function initSlider() {
     var track = document.getElementById('slider-track');
