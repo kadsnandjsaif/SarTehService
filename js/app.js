@@ -80,48 +80,79 @@
     document.querySelectorAll('.hero-card').forEach(function(el) { observer.observe(el); });
   }
 
+  function formatPhone(value) {
+    var digits = value.replace(/\D/g, '');
+    if (digits.length === 0) return '';
+    if (digits[0] === '8') digits = '7' + digits.slice(1);
+    if (digits[0] !== '7') digits = '7' + digits;
+    var result = '+7';
+    if (digits.length > 1) result += ' (' + digits.slice(1, 4);
+    if (digits.length >= 4) result += ') ';
+    if (digits.length > 4) result += digits.slice(4, 7);
+    if (digits.length > 7) result += '-' + digits.slice(7, 9);
+    if (digits.length > 9) result += '-' + digits.slice(9, 11);
+    return result;
+  }
+
+  function isValidPhone(value) {
+    var digits = value.replace(/\D/g, '');
+    return digits.length === 11 && digits[0] === '7';
+  }
+
   function initForms() {
     var modal = document.getElementById('modal-overlay');
     var modalClose = document.getElementById('modal-close');
 
+    document.querySelectorAll('.input-wrap input[type="tel"]').forEach(function(input) {
+      input.addEventListener('input', function () {
+        var pos = this.selectionStart;
+        var before = this.value.length;
+        this.value = formatPhone(this.value);
+        var after = this.value.length;
+        var newPos = pos + (after - before);
+        this.setSelectionRange(newPos, newPos);
+      });
+      input.addEventListener('focus', function () {
+        if (!this.value) this.value = '+7 (';
+      });
+      input.addEventListener('blur', function () {
+        if (this.value === '+7 (' || this.value === '+7') this.value = '';
+      });
+    });
+
     document.querySelectorAll('.lead-form-inner').forEach(function(form) {
       form.addEventListener('submit', function (e) {
         e.preventDefault();
+        var phoneInput = this.querySelector('input[type="tel"]');
+        if (phoneInput && !isValidPhone(phoneInput.value)) {
+          phoneInput.classList.add('input-error');
+          phoneInput.focus();
+          setTimeout(function() { phoneInput.classList.remove('input-error'); }, 2000);
+          return;
+        }
         var submitBtn = this.querySelector('.btn-submit');
         if (submitBtn) {
           submitBtn.disabled = true;
           submitBtn.textContent = 'Отправка...';
         }
-        var formId = FORMSPREE_ID;
-        var isDemo = !formId || formId === 'YOUR_FORM_ID';
 
-        if (isDemo) {
-          setTimeout(function() {
+        var formData = new FormData(form);
+        fetch('https://formspree.io/f/' + FORMSPREE_ID, {
+          method: 'POST',
+          body: formData,
+          headers: { 'Accept': 'application/json' }
+        }).then(function(response) {
+          if (response.ok) {
             if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Отправить заявку'; }
             form.reset();
             if (modal) { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); }
-          }, 800);
-          return;
-        }
-
-        var formData = new FormData(form);
-        fetch('https://formspree.io/f/' + formId, {
-          method: 'POST',
-          body: formData
-        }).then(function() {
-          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Отправить заявку'; }
-          form.reset();
-          if (modal) { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); }
+          } else {
+            throw new Error('Formspree error');
+          }
         }).catch(function() {
           if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Отправить заявку'; }
           alert('Ошибка отправки. Попробуйте позже или позвоните нам.');
         });
-      });
-    });
-
-    document.querySelectorAll('.input-wrap input[type="tel"]').forEach(function(input) {
-      input.addEventListener('input', function () {
-        this.value = this.value.replace(/[^\d+]/g, '');
       });
     });
 
