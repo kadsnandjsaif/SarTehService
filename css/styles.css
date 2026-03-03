@@ -789,13 +789,15 @@ main { flex: 1; }
 @media (min-width: 768px) {
   .review-card { width: auto; max-width: none; }
 }
-.review-card img {
+.review-card img,
+.review-card video {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s, opacity 0.3s;
 }
-.review-card:hover img {
+.review-card:hover img,
+.review-card:hover video {
   transform: scale(1.04);
   opacity: 0.85;
 }
