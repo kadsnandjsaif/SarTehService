@@ -199,7 +199,7 @@
       if (src.indexOf('youtube') !== -1) {
         body.innerHTML = '<iframe src="' + src + '" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
       } else {
-        body.innerHTML = '<video src="' + src + '" controls autoplay playsinline style="width:100%;max-height:80vh;border-radius:0.75rem"></video>';
+        body.innerHTML = '<video src="' + src + '" controls autoplay playsinline></video>';
       }
       overlay.classList.add('open');
       overlay.setAttribute('aria-hidden', 'false');
